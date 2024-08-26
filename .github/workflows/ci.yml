@@ -1,0 +1,73 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  backend:
+
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:14-alpine
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: chat_db
+        options: >-
+          --health-cmd="pg_isready -U user"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+        ports:
+          - 5432:5432
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '18'
+
+    - name: Install dependencies (Backend)
+      run: |
+        cd backend
+        yarn install
+
+    - name: Run tests (Backend)
+      run: |
+        cd backend
+        yarn test
+
+    - name: Build (Backend)
+      run: |
+        cd backend
+        yarn build
+
+  frontend:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '18'
+
+    - name: Install dependencies (Frontend)
+      run: |
+        cd frontend
+        yarn install
+
+    - name: Run tests (Frontend)
+      run: |
+        cd frontend
+        yarn test
+
+    - name: Build (Frontend)
+      run: |
+        cd frontend
+        yarn build
