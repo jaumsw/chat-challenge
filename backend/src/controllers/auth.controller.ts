@@ -11,13 +11,20 @@ export class AuthController {
   async register(req: Request, res: Response): Promise<Response> {
     const { name, email, password } = req.body;
     try {
+      if (!name || !email || !password) {
+        return res.status(400).json({ message: 'Missing required fields' });
+      }
       const user = await this.authService.register(name, email, password);
       return res.status(201).json(user);
     } catch (error: any) {
+      console.error('Registration error:', error);
+      if (error.message === 'Email already in use') {
+        return res.status(400).json({ message: error.message });
+      }
       return res.status(400).json({ message: error.message });
     }
   }
-  
+
   async login(req: Request, res: Response): Promise<Response> {
     const { email, password } = req.body;
     try {

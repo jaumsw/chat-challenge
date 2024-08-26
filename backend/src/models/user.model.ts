@@ -7,11 +7,21 @@ export type User = PrismaUser;
 
 export class UserModel {
   async create(user: Omit<User, 'id'>): Promise<User> {
-    const hashedPassword = await bcrypt.hash(user.password, 10);
-    const newUser = await prisma.user.create({
-      data: { ...user, password: hashedPassword },
+    const existingUser = await prisma.user.findUnique({
+      where: { email: user.email },
     });
-    return newUser;
+
+    if (existingUser) {
+      throw new Error('Email already in use');
+    }
+
+    const hashedPassword = await bcrypt.hash(user.password, 10);
+    return prisma.user.create({
+      data: {
+        ...user,
+        password: hashedPassword,
+      },
+    });
   }
 
   async findByEmail(email: string): Promise<User | null> {
